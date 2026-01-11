@@ -68,7 +68,7 @@ export default function MistakesPage() {
         {/* Hero Section */}
         <section className="py-16 md:py-24 bg-gray-900 text-white">
           <div className="max-w-3xl mx-auto px-6 sm:px-8 text-center">
-            <h1 className="text-3xl md:text-5xl font-serif font-normal mb-6 leading-tight">
+            <h1 className="text-3xl md:text-5xl font-serif font-normal mb-6 leading-tight text-white">
               7 Mistakes Americans Make Buying Property in Costa Rica
             </h1>
             <p className="text-xl text-gray-300 mb-4">
