@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { requireAuth } from '@/lib/auth';
 
-// GET /api/referrals - List all referrals
+// GET /api/referrals - List all referrals (auth required)
 export async function GET(request: NextRequest) {
+  const authError = await requireAuth(request);
+  if (authError) return authError;
+
   const { searchParams } = new URL(request.url);
   const status = searchParams.get('status');
   const partnerId = searchParams.get('partner_id');
@@ -29,8 +33,11 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({ referrals: data });
 }
 
-// POST /api/referrals - Create a new referral (assign buyer to partner)
+// POST /api/referrals - Create a new referral (auth required)
 export async function POST(request: NextRequest) {
+  const authError = await requireAuth(request);
+  if (authError) return authError;
+
   const body = await request.json();
 
   const { buyer_id, partner_id, notes } = body;

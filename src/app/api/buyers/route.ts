@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { notifyHyamOfNewBuyer } from '@/lib/email';
+import { requireAuth } from '@/lib/auth';
 
-// GET /api/buyers - List all buyers
+// GET /api/buyers - List all buyers (auth required)
 export async function GET(request: NextRequest) {
+  const authError = await requireAuth(request);
+  if (authError) return authError;
+
   const { searchParams } = new URL(request.url);
   const limit = parseInt(searchParams.get('limit') || '50');
   const offset = parseInt(searchParams.get('offset') || '0');
@@ -21,7 +25,7 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({ buyers: data, total: count });
 }
 
-// POST /api/buyers - Create a new buyer
+// POST /api/buyers - Create a new buyer (public - lead form)
 export async function POST(request: NextRequest) {
   const body = await request.json();
 

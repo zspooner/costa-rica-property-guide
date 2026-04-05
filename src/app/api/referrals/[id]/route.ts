@@ -1,12 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { requireAuth } from '@/lib/auth';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
 }
 
-// GET /api/referrals/[id] - Get a single referral
+// GET /api/referrals/[id] - Get a single referral (auth required)
 export async function GET(request: NextRequest, { params }: RouteParams) {
+  const authError = await requireAuth(request);
+  if (authError) return authError;
+
   const { id } = await params;
 
   const { data, error } = await supabase
@@ -22,11 +26,15 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
   return NextResponse.json({ referral: data });
 }
 
-// PATCH /api/referrals/[id] - Update a referral (status, notes, partner)
+// PATCH /api/referrals/[id] - Update a referral (auth required)
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
+  const authError = await requireAuth(request);
+  if (authError) return authError;
+
   const { id } = await params;
   const body = await request.json();
 
+  // Allowlist fields to prevent mass assignment
   const { status, notes, partner_id } = body;
 
   const updateData: Record<string, unknown> = {};
@@ -48,8 +56,11 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
   return NextResponse.json({ referral: data });
 }
 
-// DELETE /api/referrals/[id] - Delete a referral
+// DELETE /api/referrals/[id] - Delete a referral (auth required)
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
+  const authError = await requireAuth(request);
+  if (authError) return authError;
+
   const { id } = await params;
 
   const { error } = await supabase

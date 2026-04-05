@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { requireAuth } from '@/lib/auth';
 
-// GET /api/partners - List all partners
-export async function GET() {
+// GET /api/partners - List all partners (auth required)
+export async function GET(request: NextRequest) {
+  const authError = await requireAuth(request);
+  if (authError) return authError;
+
   const { data, error } = await supabase
     .from('partners')
     .select('*')
@@ -15,8 +19,11 @@ export async function GET() {
   return NextResponse.json({ partners: data });
 }
 
-// POST /api/partners - Create a new partner
+// POST /api/partners - Create a new partner (auth required)
 export async function POST(request: NextRequest) {
+  const authError = await requireAuth(request);
+  if (authError) return authError;
+
   const body = await request.json();
 
   const { name, firm, email, whatsapp, notes } = body;

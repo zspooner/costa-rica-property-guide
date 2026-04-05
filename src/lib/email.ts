@@ -3,6 +3,16 @@ import { Resend } from 'resend';
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 const notificationEmail = process.env.NOTIFICATION_EMAIL || '';
 
+/** Escape user input before interpolating into HTML to prevent stored XSS */
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 interface BuyerDetails {
   name: string;
   email: string;
@@ -18,11 +28,18 @@ export async function notifyHyamOfNewBuyer(buyer: BuyerDetails): Promise<boolean
     return false;
   }
 
+  const safeName = escapeHtml(buyer.name);
+  const safeEmail = escapeHtml(buyer.email);
+  const safeBudget = escapeHtml(buyer.budget_range);
+  const safeTimeline = escapeHtml(buyer.timeline);
+  const safeUse = escapeHtml(buyer.intended_use);
+  const safeArea = escapeHtml(buyer.area_interest);
+
   try {
     await resend.emails.send({
       from: 'Costa Rica Property Guide <notifications@resend.dev>',
       to: notificationEmail,
-      subject: `New Buyer Inquiry: ${buyer.name}`,
+      subject: `New Buyer Inquiry: ${safeName}`,
       html: `
         <div style="font-family: system-ui, sans-serif; max-width: 600px; margin: 0 auto;">
           <h2 style="color: #15803d;">New Buyer Inquiry</h2>
@@ -30,29 +47,29 @@ export async function notifyHyamOfNewBuyer(buyer: BuyerDetails): Promise<boolean
           <table style="width: 100%; border-collapse: collapse;">
             <tr>
               <td style="padding: 8px 0; border-bottom: 1px solid #eee; font-weight: 600;">Name</td>
-              <td style="padding: 8px 0; border-bottom: 1px solid #eee;">${buyer.name}</td>
+              <td style="padding: 8px 0; border-bottom: 1px solid #eee;">${safeName}</td>
             </tr>
             <tr>
               <td style="padding: 8px 0; border-bottom: 1px solid #eee; font-weight: 600;">Email</td>
               <td style="padding: 8px 0; border-bottom: 1px solid #eee;">
-                <a href="mailto:${buyer.email}">${buyer.email}</a>
+                <a href="mailto:${safeEmail}">${safeEmail}</a>
               </td>
             </tr>
             <tr>
               <td style="padding: 8px 0; border-bottom: 1px solid #eee; font-weight: 600;">Budget</td>
-              <td style="padding: 8px 0; border-bottom: 1px solid #eee;">${buyer.budget_range}</td>
+              <td style="padding: 8px 0; border-bottom: 1px solid #eee;">${safeBudget}</td>
             </tr>
             <tr>
               <td style="padding: 8px 0; border-bottom: 1px solid #eee; font-weight: 600;">Timeline</td>
-              <td style="padding: 8px 0; border-bottom: 1px solid #eee;">${buyer.timeline}</td>
+              <td style="padding: 8px 0; border-bottom: 1px solid #eee;">${safeTimeline}</td>
             </tr>
             <tr>
               <td style="padding: 8px 0; border-bottom: 1px solid #eee; font-weight: 600;">Intended Use</td>
-              <td style="padding: 8px 0; border-bottom: 1px solid #eee;">${buyer.intended_use}</td>
+              <td style="padding: 8px 0; border-bottom: 1px solid #eee;">${safeUse}</td>
             </tr>
             <tr>
               <td style="padding: 8px 0; font-weight: 600; vertical-align: top;">Areas of Interest</td>
-              <td style="padding: 8px 0;">${buyer.area_interest}</td>
+              <td style="padding: 8px 0;">${safeArea}</td>
             </tr>
           </table>
 

@@ -78,18 +78,42 @@ CREATE TRIGGER update_referrals_updated_at
   EXECUTE FUNCTION update_updated_at_column();
 
 -- =====================================================
--- ROW LEVEL SECURITY (Disabled for now - no auth)
+-- ROW LEVEL SECURITY
 -- =====================================================
--- Note: Enable RLS and add policies when auth is implemented
 
 ALTER TABLE buyers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE partners ENABLE ROW LEVEL SECURITY;
 ALTER TABLE referrals ENABLE ROW LEVEL SECURITY;
 
--- Temporary: Allow all operations (remove when auth is added)
-CREATE POLICY "Allow all on buyers" ON buyers FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Allow all on partners" ON partners FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Allow all on referrals" ON referrals FOR ALL USING (true) WITH CHECK (true);
+-- Buyers: public INSERT (lead form), admin-only for everything else
+CREATE POLICY "Public insert on buyers" ON buyers
+  FOR INSERT WITH CHECK (true);
+CREATE POLICY "Admin select on buyers" ON buyers
+  FOR SELECT USING (auth.role() = 'authenticated');
+CREATE POLICY "Admin update on buyers" ON buyers
+  FOR UPDATE USING (auth.role() = 'authenticated');
+CREATE POLICY "Admin delete on buyers" ON buyers
+  FOR DELETE USING (auth.role() = 'authenticated');
+
+-- Partners: all operations restricted to authenticated users
+CREATE POLICY "Auth select on partners" ON partners
+  FOR SELECT USING (auth.role() = 'authenticated');
+CREATE POLICY "Auth insert on partners" ON partners
+  FOR INSERT WITH CHECK (auth.role() = 'authenticated');
+CREATE POLICY "Auth update on partners" ON partners
+  FOR UPDATE USING (auth.role() = 'authenticated');
+CREATE POLICY "Auth delete on partners" ON partners
+  FOR DELETE USING (auth.role() = 'authenticated');
+
+-- Referrals: all operations restricted to authenticated users
+CREATE POLICY "Auth select on referrals" ON referrals
+  FOR SELECT USING (auth.role() = 'authenticated');
+CREATE POLICY "Auth insert on referrals" ON referrals
+  FOR INSERT WITH CHECK (auth.role() = 'authenticated');
+CREATE POLICY "Auth update on referrals" ON referrals
+  FOR UPDATE USING (auth.role() = 'authenticated');
+CREATE POLICY "Auth delete on referrals" ON referrals
+  FOR DELETE USING (auth.role() = 'authenticated');
 
 -- =====================================================
 -- SEED DATA: Initial Partners (Optional)
